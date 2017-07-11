@@ -46,7 +46,7 @@ module.exports = function(app) {
         res.json(Object.keys(data).map(propName => data[propName]));
       });
       router.get("/self/values/:path/:sourceRef", (req, res, next) => {
-        const fullId = getFullId(path, sourceRef);
+        const fullId = getFullId(req.params.path, req.params.sourceRef);
         console.log(fullId)
         console.log(data[fullId])
         if (data[fullId]) {
@@ -67,7 +67,7 @@ function handleDelta(delta, data) {
       const sourceRef = getSourceRef(update);
       update.values &&
         update.values.forEach(pathValue => {
-          const fullId = getFullId(pathValue.path, sourceRef;
+          const fullId = getFullId(pathValue.path, sourceRef);
           data[fullId] = {
             path: pathValue.path,
             value: pathValue.value,
