@@ -1,7 +1,7 @@
 {
-  "name": "signalk-simple-http-api",
+  "name": "signalk-flat-values-api",
   "version": "0.0.1",
-  "description": "Plugin that provides a simple http api to Signal K data",
+  "description": "Plugin that provides a flat http api to Signal K data",
   "main": "index.js",
   "keywords": [
     "signalk-node-server-plugin"

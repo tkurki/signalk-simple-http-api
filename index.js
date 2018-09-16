@@ -13,81 +13,81 @@
  * limitations under the License.
  */
 
-const Bacon = require("baconjs");
-const debug = require("debug")("signalk:simple-api");
-const schema = require("signalk-schema");
+const debug = require('debug')('signalk:simple-api')
+const schema = require('signalk-schema')
 
-module.exports = function(app) {
-  let data = {};
+module.exports = function (app) {
+  let data = {}
+
+  const selfId = 'vessels.' + app.selfId
+  const onDelta = delta => {
+    if (delta.context && delta.context === selfId) {
+      handleDelta(delta, data)
+    }
+  }
 
   return {
-    id: "simple-api",
-    name: "Simple Signal K http api",
-    description: "Plugin that provides a simple http api to Signal K data",
+    id: 'flat-values-api',
+    name: 'Simple Signal K http api',
+    description: 'Plugin that provides a simple http api to Signal K data',
 
     schema: {
-      type: "object",
+      type: 'object',
       properties: {}
     },
 
-    start: function(options) {
-      data = {};
-      const selfId = "vessels." + app.selfId;
-      app.signalk.on("delta", delta => {
-        if (delta.context && delta.context === selfId) {
-          handleDelta(delta, data);
-        }
-      });
+    start: function (options) {
+      app.signalk.on('delta', onDelta)
     },
-    stop: function() {},
-    signalKApiRoutes: function(router) {
-      router.get("/self/values", (req, res, next) => {
-        console.log(JSON.stringify())
-        res.json(Object.keys(data).map(propName => data[propName]));
-      });
-      router.get("/self/values/:path/:sourceRef", (req, res, next) => {
-        const fullId = getFullId(req.params.path, req.params.sourceRef);
-        console.log(fullId)
-        console.log(data[fullId])
+    stop: function () {
+      date = {}
+      app.signalk.removeListener('delta', onDelta)
+    },
+    signalKApiRoutes: function (router) {
+      router.get('/self/values', (req, res, next) => {
+        res.json(Object.keys(data).map(propName => data[propName]))
+      })
+      router.get('/self/values/:path/:sourceRef', (req, res, next) => {
+        const fullId = getFullId(req.params.path, req.params.sourceRef)
         if (data[fullId]) {
-          res.json(data[fullId]);
+          res.json(data[fullId])
         } else {
-          res.status(404);
-          res.end();
+          res.status(404)
+          res.end()
         }
-      });
-      return router;
+      })
+      return router
     }
-  };
-};
+  }
+}
 
-function handleDelta(delta, data) {
+function handleDelta (delta, data) {
   delta.updates &&
     delta.updates.forEach(update => {
-      const sourceRef = getSourceRef(update);
+      const sourceRef = getSourceRef(update)
       update.values &&
         update.values.forEach(pathValue => {
-          const fullId = getFullId(pathValue.path, sourceRef);
+          const fullId = getFullId(pathValue.path, sourceRef)
           data[fullId] = {
             path: pathValue.path,
             value: pathValue.value,
             sourceRef: sourceRef
-          };
-        });
-    });
+          }
+        })
+    })
 }
 
-function getFullId(path, sourceRef) {
-  return path + "/" + sourceRef
+function getFullId (path, sourceRef) {
+  return path + '/' + sourceRef
 }
 
-function getSourceRef(update) {
+function getSourceRef (update) {
   if (update.source) {
-    return schema.getSourceId(update.source);
-  } else if (update["$source"]) {
-    return update["$source"];
+    return schema.getSourceId(update.source)
+  } else if (update['$source']) {
+    return update['$source']
   } else {
-    console.error("No source id in " + JSON.stringify(update));
-    return "";
+    console.error('No source id in ' + JSON.stringify(update))
+    return ''
   }
 }
